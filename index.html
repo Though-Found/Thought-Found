@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2.1 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -146,7 +147,7 @@ option[value="Churned"] { background: #FCEBEB; color: #791F1F; }
   <div class="lock-card">
     <div class="lock-icon-wrap"><i class="ti ti-lock"></i></div>
     <div>
-      <div class="lock-title">Business Database</div>
+      <div class="lock-title">Thought &amp; Found Database</div>
       <div class="lock-sub">Enter your password to continue.</div>
     </div>
     <div class="lock-form">
@@ -289,7 +290,7 @@ option[value="Churned"] { background: #FCEBEB; color: #791F1F; }
 <div id="app">
   <div class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-title">Business DB</div>
+      <div class="sidebar-logo-title">T&amp;F Database</div>
       <div class="sidebar-logo-sub">Live database</div>
     </div>
     <div class="sidebar-section">Database</div>
@@ -1103,10 +1104,9 @@ function startEdit(type, id) {
 }
 
 async function delEntry(type, id) {
-  const enteredPw = prompt('Enter admin password to delete this entry:');
+  const enteredPw = prompt('Enter delete password to confirm deletion:');
   if (enteredPw === null) return;
-  if (enteredPw !== pw) { alert('Incorrect password. Deletion cancelled.'); return; }
-  if (!confirm('Delete this entry? This cannot be undone.')) return;
+  if (enteredPw !== deletePw) { alert('Incorrect delete password. Deletion cancelled.'); return; }
   try {
     await sbDelete(type==='v' ? 'vendors' : 'clients', id);
     toast('Deleted successfully');
