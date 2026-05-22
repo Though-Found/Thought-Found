@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Business Database</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --warm-bg:#FAF7F2;--warm-surface:#F5F0E8;--warm-border:#E2D9C8;
+    --warm-accent:#8B5E3C;--warm-accent-light:#F2EAE0;--warm-accent-text:#5C3D22;
+    --client-accent:#4A6741;--client-light:#EAF0E8;--client-text:#2D4228;
+    --text-primary:#2C2416;--text-secondary:#7A6A58;--text-hint:#B0A090;
+    --sidebar-w:180px;
+    --radius-md:8px;--radius-lg:12px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--warm-bg);color:var(--text-primary);}
+
+  /* STATUS COLORS */
+select.status-select { font-weight: 500; }
+option[value="Active"] { background: #EAF0E8; color: #2D4228; }
+option[value="Prospect"] { background: #F5EDD8; color: #5C3D22; }
+option[value="Inactive"] { background: #FCEBEB; color: #791F1F; }
+option[value="Churned"] { background: #FCEBEB; color: #791F1F; }
+
+/* COLORED STATUS SELECT */
+.status-active { background: #EAF0E8 !important; color: #2D4228 !important; border-color: #9FC99A !important; font-weight: 500 !important; }
+.status-prospect { background: #F5EDD8 !important; color: #5C3D22 !important; border-color: #D4B483 !important; font-weight: 500 !important; }
+.status-inactive { background: #FCEBEB !important; color: #791F1F !important; border-color: #E9A5A5 !important; font-weight: 500 !important; }
+.status-churned { background: #FCEBEB !important; color: #791F1F !important; border-color: #E9A5A5 !important; font-weight: 500 !important; }
+
+/* LOCK */
+  #lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+  .lock-card{background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-lg);padding:2.5rem 2rem;width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;gap:1.25rem;text-align:center;}
+  .lock-icon-wrap{width:56px;height:56px;border-radius:50%;background:var(--warm-accent-light);display:flex;align-items:center;justify-content:center;}
+  .lock-icon-wrap i{font-size:24px;color:var(--warm-accent);}
+  .lock-title{font-size:18px;font-weight:600;color:var(--text-primary);}
+  .lock-sub{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+  .lock-form{width:100%;display:flex;flex-direction:column;gap:10px;}
+  .lock-form input{width:100%;font-size:14px;background:var(--warm-bg);border:1px solid var(--warm-border);padding:9px 12px;border-radius:var(--radius-md);color:var(--text-primary);outline:none;}
+  .lock-form input:focus{border-color:var(--warm-accent);}
+  .btn-warm{background:var(--warm-accent);color:#fff;border:none;padding:9px 20px;border-radius:var(--radius-md);font-size:14px;cursor:pointer;font-family:inherit;width:100%;font-weight:500;}
+  .btn-warm:hover{opacity:0.9;}
+  .lock-error{font-size:12px;color:#A32D2D;display:none;}
+  .lock-hint{font-size:11px;color:var(--text-hint);}
+
+  /* APP */
+  #app{display:none;min-height:100vh;flex-direction:row;}
+  .sidebar{width:var(--sidebar-w);background:var(--warm-surface);border-right:1px solid var(--warm-border);display:flex;flex-direction:column;flex-shrink:0;min-height:100vh;}
+  .sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid var(--warm-border);}
+  .sidebar-logo-title{font-size:14px;font-weight:600;color:var(--text-primary);}
+  .sidebar-logo-sub{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+  .sidebar-section{padding:0.75rem 0.5rem 0.25rem;font-size:10px;font-weight:600;color:var(--text-hint);letter-spacing:0.06em;text-transform:uppercase;}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--text-secondary);margin:1px 6px;transition:all 0.1s;}
+  .nav-item i{font-size:16px;flex-shrink:0;}
+  .nav-item:hover{background:var(--warm-accent-light);color:var(--warm-accent-text);}
+  .nav-item.active-v{background:var(--warm-accent-light);color:var(--warm-accent);font-weight:500;}
+  .nav-item.active-c{background:var(--client-light);color:var(--client-accent);font-weight:500;}
+  .nav-item.active-s{background:var(--warm-accent-light);color:var(--warm-accent-text);font-weight:500;}
+  .sidebar-bottom{margin-top:auto;padding:0.75rem 6px;border-top:1px solid var(--warm-border);}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .main-header{padding:1rem 1.25rem 0.75rem;border-bottom:1px solid var(--warm-border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--warm-bg);}
+  .main-header-title{font-size:16px;font-weight:600;color:var(--text-primary);}
+  .header-actions{display:flex;gap:6px;align-items:center;}
+  .btn-sm{font-size:12px;padding:6px 12px;border-radius:var(--radius-md);cursor:pointer;font-family:inherit;border:1px solid var(--warm-border);background:var(--warm-surface);color:var(--text-primary);}
+  .btn-sm:hover{background:var(--warm-accent-light);}
+  .btn-sm-green{font-size:12px;padding:6px 12px;border-radius:var(--radius-md);cursor:pointer;font-family:inherit;border:none;background:var(--client-accent);color:#fff;font-weight:500;}
+  .btn-sm-green:hover{opacity:0.9;}
+  .btn-sm-warm{font-size:12px;padding:6px 12px;border-radius:var(--radius-md);cursor:pointer;font-family:inherit;border:none;background:var(--warm-accent);color:#fff;font-weight:500;}
+  .btn-sm-warm:hover{opacity:0.9;}
+
+  .content{padding:1rem 1.25rem;overflow-y:auto;}
+  .section{display:none;}
+  .section.active{display:block;}
+
+  /* LOADING */
+  .loading{text-align:center;padding:2rem;color:var(--text-secondary);font-size:13px;}
+  .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--warm-border);border-top-color:var(--warm-accent);border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:8px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:#fff;padding:10px 16px;border-radius:var(--radius-md);font-size:13px;z-index:999;display:none;animation:fadeIn 0.2s;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:1rem;}
+  .stat-card{background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:0.75rem 1rem;}
+  .stat-label{font-size:11px;color:var(--text-secondary);margin-bottom:4px;}
+  .stat-val{font-size:20px;font-weight:600;color:var(--text-primary);}
+
+  .search-row{display:flex;gap:8px;margin-bottom:0.875rem;flex-wrap:wrap;}
+  .search-row input,.search-row select{font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:6px 10px;color:var(--text-primary);outline:none;font-family:inherit;}
+  .search-row input{flex:1;min-width:130px;}
+  .search-row input:focus,.search-row select:focus{border-color:var(--warm-accent);}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+  .entry-card{background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-lg);padding:0.875rem 1rem;cursor:pointer;transition:border-color 0.15s;}
+  .entry-card:hover{border-color:var(--warm-accent);}
+  .entry-card.client-card:hover{border-color:var(--client-accent);}
+  .card-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .av-v{width:36px;height:36px;border-radius:50%;background:var(--warm-accent-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--warm-accent);flex-shrink:0;}
+  .av-c{width:36px;height:36px;border-radius:50%;background:var(--client-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--client-accent);flex-shrink:0;}
+  .card-name{font-size:13px;font-weight:500;color:var(--text-primary);}
+  .status-badge{font-size:10px;padding:2px 7px;border-radius:999px;display:inline-block;margin-top:2px;}
+  .tag-v{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--warm-accent-light);color:var(--warm-accent-text);display:inline-block;margin-bottom:5px;}
+  .tag-c{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--client-light);color:var(--client-text);display:inline-block;margin-bottom:5px;}
+  .card-line{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;margin-top:3px;}
+  .card-line i{font-size:13px;}
+  .empty{text-align:center;padding:2.5rem 1rem;color:var(--text-secondary);font-size:13px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+  .fg{display:flex;flex-direction:column;gap:5px;}
+  .fg.full{grid-column:1/-1;}
+  .fg label{font-size:12px;color:var(--text-secondary);font-weight:500;}
+  .fg input,.fg select,.fg textarea{font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:7px 10px;color:var(--text-primary);outline:none;font-family:inherit;}
+  .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--warm-accent);}
+  .fg textarea{resize:vertical;min-height:64px;}
+  .combo-other{display:none;margin-top:4px;}
+  .combo-other input{width:100%;font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:7px 10px;color:var(--text-primary);outline:none;font-family:inherit;}
+  .form-actions{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end;}
+  .form-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:0.875rem;}
+
+  .modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(44,36,22,0.45);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;}
+  .modal{background:var(--warm-bg);border:1px solid var(--warm-border);border-radius:var(--radius-lg);padding:1.25rem;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+  .modal-ttl{font-size:15px;font-weight:600;color:var(--text-primary);}
+  .modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-secondary);line-height:1;}
+  .drow{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--warm-border);font-size:13px;}
+  .dlabel{color:var(--text-secondary);min-width:110px;flex-shrink:0;}
+  .dval{color:var(--text-primary);}
+  .modal-actions{display:flex;gap:8px;margin-top:0.875rem;}
+
+  @media(max-width:600px){
+    .sidebar{width:48px;}
+    .sidebar-logo,.sidebar-section,.nav-item span,.sidebar-logo-sub,.sidebar-logo-title{display:none;}
+    .nav-item{justify-content:center;padding:10px 0;}
+    .form-grid{grid-template-columns:1fr;}
+    .fg.full{grid-column:1;}
+  }
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-icon-wrap"><i class="ti ti-lock"></i></div>
+    <div>
+      <div class="lock-title">Business Database</div>
+      <div class="lock-sub">Enter your password to continue.</div>
+    </div>
+    <div class="lock-form">
+      <input type="password" id="pw-in" placeholder="Enter password" autocomplete="current-password" />
+      <div class="lock-error" id="pw-err">Incorrect password. Try again.</div>
+      <button class="btn-warm" onclick="checkPw()">Continue &rarr;</button>
+    </div>
+    <div class="lock-hint">Contact your admin for the password.</div>
+  </div>
+</div>
+
+<!-- ADD-ONLY SCREEN -->
+<div id="add-only-screen" style="display:none;">
+  <div style="min-height:100vh;background:var(--warm-bg);">
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--warm-border);background:var(--warm-surface);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:15px;font-weight:600;color:var(--text-primary);">Submit a record</div>
+      <button onclick="document.getElementById('add-only-screen').style.display='none';document.getElementById('lock-screen').style.display='flex';" style="font-size:12px;color:var(--text-secondary);background:none;border:none;cursor:pointer;">Sign out</button>
+    </div>
+    <div style="padding:1.25rem;max-width:560px;margin:0 auto;">
+      <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+        <button id="ao-tab-v" onclick="aoTab('v')" style="flex:1;padding:8px;border-radius:var(--radius-md);border:1px solid var(--warm-border);background:var(--warm-accent);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;">🏭 Add Vendor</button>
+        <button id="ao-tab-c" onclick="aoTab('c')" style="flex:1;padding:8px;border-radius:var(--radius-md);border:1px solid var(--warm-border);background:var(--warm-surface);color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:13px;">🤝 Add Freelancer</button>
+      </div>
+
+      <!-- ADD VENDOR FORM -->
+      <div id="ao-vendor-form">
+        <div class="form-grid">
+          <div class="fg"><label>Vendor / company name</label><input id="ao-vf-name" type="text" placeholder="e.g. Sharma Supplies Pvt Ltd" /></div>
+          <div class="fg"><label>Contact person</label><input id="ao-vf-contact" type="text" placeholder="e.g. Rahul Sharma" /></div>
+          <div class="fg"><label>Phone</label><input id="ao-vf-phone" type="tel" placeholder="+91 98765 43210" /></div>
+          <div class="fg"><label>Email</label><input id="ao-vf-email" type="email" placeholder="rahul@sharma.com" /></div>
+          <div class="fg">
+            <label>Category / service</label>
+            <select id="ao-vf-cat" onchange="combo('ao-vf-cat','ao-vf-cat-o')">
+              <option value="">Select</option>
+              <option>Manufacturing</option><option>Fabrication vendor</option><option>Wood vendor</option>
+              <option>Metal vendor</option><option>Logistics &amp; shipping</option>
+              <option>IT &amp; technology</option><option>Finance &amp; legal</option>
+              <option>Design material</option>
+              <option value="__o__">Other (type below)</option>
+            </select>
+            <div class="combo-other" id="ao-vf-cat-o-wrap"><input id="ao-vf-cat-o" type="text" placeholder="Type category…" /></div>
+          </div>
+          <div class="fg">
+            <label>Where we connected</label>
+            <select id="ao-vf-src" onchange="combo('ao-vf-src','ao-vf-src-o');updateSourceDetail('ao-vf-src','ao-vf-src-detail-wrap','ao-vf-src-detail','ao-vf-src-o-wrap','ao-vf-src-o')">
+              <option value="">Select</option>
+              <option>Referral</option><option>Trade show / exhibition</option><option>Cold outreach</option>
+              <option>LinkedIn</option><option>IndiaMART / TradeIndia</option>
+              <option>Website inquiry</option><option>Existing relationship</option>
+              <option value="__o__">Other (type below)</option>
+            </select>
+            <div class="combo-other" id="ao-vf-src-o-wrap"><input id="ao-vf-src-o" type="text" placeholder="Type source…" oninput="updateSourceDetail('ao-vf-src','ao-vf-src-detail-wrap','ao-vf-src-detail','ao-vf-src-o-wrap','ao-vf-src-o')" /></div>
+            <div id="ao-vf-src-detail-wrap" style="display:none;margin-top:6px;">
+              <label style="font-size:12px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:4px;">Details</label>
+              <input id="ao-vf-src-detail" type="text" placeholder="" style="width:100%;font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:7px 10px;color:var(--text-primary);outline:none;font-family:inherit;" />
+            </div>
+          </div>
+          <div class="fg"><label>City</label><input id="ao-vf-city" type="text" placeholder="e.g. Mumbai" /></div>
+          <div class="fg"><label>State</label><input id="ao-vf-state" type="text" placeholder="e.g. Maharashtra" /></div>
+          <div class="fg"><label>Country</label><input id="ao-vf-country" type="text" placeholder="e.g. India" /></div>
+          <div class="fg"><label>Status</label>
+            <select id="ao-vf-status" onchange="updateStatusColor(this)" class="status-active"><option>Active</option><option>Prospect</option><option>Inactive</option></select>
+          </div>
+          <div class="fg full"><label>Tags</label><input id="ao-vf-tags" type="text" placeholder="Tag helps search the vendor" /></div>
+          <div class="fg full"><label>Notes</label><textarea id="ao-vf-notes" placeholder="Additional notes…"></textarea></div>
+          <div class="fg full">
+            <label>Image / Document</label>
+            <div ondragover="event.preventDefault();this.style.borderColor='var(--warm-accent)'" ondragleave="this.style.borderColor='var(--warm-border)'" ondrop="handleAoDrop(event)" style="border:2px dashed var(--warm-border);border-radius:var(--radius-md);padding:1rem;text-align:center;background:var(--warm-surface);margin-bottom:8px;">
+              <i class="ti ti-photo-up" style="font-size:24px;color:var(--text-hint);display:block;margin-bottom:6px;"></i>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Drag &amp; drop an image here</div>
+              <input type="file" id="ao-vf-image-file" accept="image/*,application/pdf" multiple style="font-size:13px;color:var(--text-primary);font-family:inherit;" onchange="handleAoImageUpload()" />
+            </div>
+            <div id="ao-vf-image-preview" style="display:none;margin-bottom:8px;">
+              <div id="ao-vf-preview-grid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+              <button onclick="clearAoImage()" style="display:block;margin-top:4px;font-size:11px;color:#A32D2D;background:none;border:none;cursor:pointer;">✕ Remove all images</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <hr style="flex:1;border:none;border-top:1px solid var(--warm-border);" />
+              <span style="font-size:11px;color:var(--text-hint);">or paste a link</span>
+              <hr style="flex:1;border:none;border-top:1px solid var(--warm-border);" />
+            </div>
+            <input id="ao-vf-drive" type="text" placeholder="Paste Google Drive / image link…" style="width:100%;" />
+          </div>
+        </div>
+        <div style="margin-top:1rem;text-align:right;">
+          <button class="btn-sm-warm" id="ao-vsave-btn" onclick="aoSaveV()">Submit vendor</button>
+        </div>
+        <p id="ao-verr" style="color:#A32D2D;font-size:12px;margin-top:8px;display:none;"></p>
+        <p id="ao-vsuccess" style="color:#2D4228;font-size:13px;margin-top:8px;display:none;font-weight:500;">✅ Vendor submitted successfully!</p>
+      </div>
+
+      <!-- ADD CLIENT FORM -->
+      <div id="ao-client-form" style="display:none;">
+        <div class="form-grid">
+          <div class="fg"><label>Freelancer / company name</label><input id="ao-cf-name" type="text" placeholder="e.g. Kapoor Enterprises" /></div>
+          <div class="fg"><label>Contact person</label><input id="ao-cf-contact" type="text" placeholder="e.g. Neha Kapoor" /></div>
+          <div class="fg"><label>Phone</label><input id="ao-cf-phone" type="tel" placeholder="+91 98765 43210" /></div>
+          <div class="fg"><label>Email</label><input id="ao-cf-email" type="email" placeholder="neha@kapoor.com" /></div>
+          <div class="fg">
+            <label>How they got to know us</label>
+            <select id="ao-cf-src" onchange="combo('ao-cf-src','ao-cf-src-o');updateSourceDetail('ao-cf-src','ao-cf-src-detail-wrap','ao-cf-src-detail','ao-cf-src-o-wrap','ao-cf-src-o')">
+              <option value="">Select</option>
+              <option>Referral</option><option>Instagram</option><option>LinkedIn</option>
+              <option>Facebook</option><option>Google search</option><option>Word of mouth</option>
+              <option>Trade show / exhibition</option><option>Cold outreach</option><option>Website</option>
+              <option value="__o__">Other (type below)</option>
+            </select>
+            <div class="combo-other" id="ao-cf-src-o-wrap"><input id="ao-cf-src-o" type="text" placeholder="Type source…" oninput="updateSourceDetail('ao-cf-src','ao-cf-src-detail-wrap','ao-cf-src-detail','ao-cf-src-o-wrap','ao-cf-src-o')" /></div>
+            <div id="ao-cf-src-detail-wrap" style="display:none;margin-top:6px;">
+              <label style="font-size:12px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:4px;">Details</label>
+              <input id="ao-cf-src-detail" type="text" placeholder="" style="width:100%;font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:7px 10px;color:var(--text-primary);outline:none;font-family:inherit;" />
+            </div>
+          </div>
+          <div class="fg"><label>Status</label>
+            <select id="ao-cf-status" onchange="updateStatusColor(this)" class="status-active"><option>Active</option><option>Prospect</option><option>Churned</option><option>Inactive</option></select>
+          </div>
+          <div class="fg full"><label>Notes</label><textarea id="ao-cf-notes" placeholder="Additional notes…"></textarea></div>
+        </div>
+        <div style="margin-top:1rem;text-align:right;">
+          <button class="btn-sm-green" id="ao-csave-btn" onclick="aoSaveC()">Submit freelancer</button>
+        </div>
+        <p id="ao-cerr" style="color:#A32D2D;font-size:12px;margin-top:8px;display:none;"></p>
+        <p id="ao-csuccess" style="color:#2D4228;font-size:13px;margin-top:8px;display:none;font-weight:500;">✅ Freelancer submitted successfully!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION ENDED SCREEN -->
+<div id="session-ended-screen" style="display:none;min-height:100vh;background:var(--warm-bg);align-items:center;justify-content:center;flex-direction:column;gap:1rem;text-align:center;padding:2rem;">
+  <div style="width:64px;height:64px;border-radius:50%;background:var(--warm-accent-light);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+    <i class="ti ti-check" style="font-size:28px;color:var(--warm-accent);"></i>
+  </div>
+  <div style="font-size:20px;font-weight:600;color:var(--text-primary);">Submitted successfully!</div>
+  <div style="font-size:14px;color:var(--text-secondary);">Your session has ended. Redirecting you back…</div>
+  <div class="spinner" style="margin-top:8px;"></div>
+</div>
+
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">Business DB</div>
+      <div class="sidebar-logo-sub">Live database</div>
+    </div>
+    <div class="sidebar-section">Database</div>
+    <div class="nav-item active-v" id="nav-v" onclick="goSection('vendor')"><i class="ti ti-building-store"></i><span>Vendors</span></div>
+    <div class="nav-item" id="nav-c" onclick="goSection('client')"><i class="ti ti-users"></i><span>Freelancers</span></div>
+    <div class="sidebar-bottom">
+      <div class="nav-item" id="nav-s" onclick="goSection('settings')"><i class="ti ti-settings"></i><span>Settings</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="main-header">
+      <div><div class="main-header-title" id="hdr-title">Vendors</div></div>
+      <div class="header-actions" id="hdr-actions"></div>
+    </div>
+    <div class="content">
+
+      <!-- VENDOR BROWSE -->
+      <div class="section active" id="sec-vbrowse">
+        <div class="stats-row" id="vstats"></div>
+        <div class="search-row">
+          <input type="text" id="vsearch" placeholder="Search vendors…" oninput="filterV()" />
+          <select id="vfcat" onchange="filterV()"><option value="">All categories</option></select>
+        </div>
+        <div id="vgrid"><div class="loading"><div class="spinner"></div><br>Loading vendors…</div></div>
+      </div>
+
+      <!-- VENDOR FORM -->
+      <div class="section" id="sec-vform">
+        <div class="form-title" id="vform-ttl">Add new vendor</div>
+        <div class="form-grid">
+          <div class="fg"><label>Vendor / company name</label><input id="vf-name" type="text" placeholder="e.g. Sharma Supplies Pvt Ltd" /></div>
+          <div class="fg"><label>Contact person</label><input id="vf-contact" type="text" placeholder="e.g. Rahul Sharma" /></div>
+          <div class="fg"><label>Phone</label><input id="vf-phone" type="tel" placeholder="+91 98765 43210" /></div>
+          <div class="fg"><label>Email</label><input id="vf-email" type="email" placeholder="rahul@sharma.com" /></div>
+          <div class="fg">
+            <label>Category / service</label>
+            <select id="vf-cat" onchange="combo('vf-cat','vf-cat-o')">
+              <option value="">Select</option>
+              <option>Manufacturing</option><option>Fabrication vendor</option><option>Wood vendor</option>
+              <option>Metal vendor</option><option>Logistics &amp; shipping</option>
+              <option>IT &amp; technology</option><option>Finance &amp; legal</option>
+              <option>Design material</option>
+              <option value="__o__">Other (type below)</option>
+            </select>
+            <div class="combo-other" id="vf-cat-o-wrap"><input id="vf-cat-o" type="text" placeholder="Type category…" /></div>
+          </div>
+          <div class="fg">
+            <label>Where we connected</label>
+            <select id="vf-src" onchange="combo('vf-src','vf-src-o');updateSourceDetail('vf-src','vf-src-detail-wrap','vf-src-detail','vf-src-o-wrap','vf-src-o')">
+              <option value="">Select</option>
+              <option>Referral</option><option>Trade show / exhibition</option><option>Cold outreach</option>
+              <option>LinkedIn</option><option>IndiaMART / TradeIndia</option>
+              <option>Website inquiry</option><option>Existing relationship</option>
+              <option value="__o__">Other (type below)</option>
+            </select>
+            <div class="combo-other" id="vf-src-o-wrap"><input id="vf-src-o" type="text" placeholder="Type source…" oninput="updateSourceDetail('vf-src','vf-src-detail-wrap','vf-src-detail','vf-src-o-wrap','vf-src-o')" /></div>
+            <div id="vf-src-detail-wrap" style="display:none;margin-top:6px;">
+              <label style="font-size:12px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:4px;">Details</label>
+              <input id="vf-src-detail" type="text" placeholder="" style="width:100%;font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:7px 10px;color:var(--text-primary);outline:none;font-family:inherit;" />
+            </div>
+          </div>
+          <div class="fg"><label>City</label><input id="vf-city" type="text" placeholder="e.g. Mumbai" /></div>
+          <div class="fg"><label>State</label><input id="vf-state" type="text" placeholder="e.g. Maharashtra" /></div>
+          <div class="fg"><label>Country</label><input id="vf-country" type="text" placeholder="e.g. India" /></div>
+          <div class="fg"><label>Status</label>
+            <select id="vf-status" onchange="updateStatusColor(this)" class="status-active"><option>Active</option><option>Prospect</option><option>Inactive</option></select>
+          </div>
+          <div class="fg full"><label>Notes</label><textarea id="vf-notes" placeholder="Additional notes…"></textarea></div>
+          <div class="fg full">
+            <label>Tags <span style="font-weight:400;color:var(--text-hint);">(comma separated)</span></label>
+            <input id="vf-tags" type="text" placeholder="Tag helps search the vendor" />
+          </div>
+          <div class="fg full">
+            <label>Image / Document</label>
+            <div id="vf-dropzone" ondragover="event.preventDefault();this.style.borderColor='var(--warm-accent)'" ondragleave="this.style.borderColor='var(--warm-border)'" ondrop="handleDrop(event)" style="border:2px dashed var(--warm-border);border-radius:var(--radius-md);padding:1.25rem;text-align:center;cursor:pointer;transition:border-color 0.15s;background:var(--warm-surface);" onclick="document.getElementById('vf-image-file').click()">
+              <i class="ti ti-photo-up" style="font-size:28px;color:var(--text-hint);display:block;margin-bottom:6px;"></i>
+              <div style="font-size:13px;color:var(--text-secondary);">Drag &amp; drop images here</div>
+              <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">or <span style="color:var(--warm-accent);text-decoration:underline;">click to browse</span> — multiple images allowed</div>
+            </div>
+            <input type="file" id="vf-image-file" accept="image/*,application/pdf" style="display:none;" multiple onchange="handleImageUpload()" />
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+              <hr style="flex:1;border:none;border-top:1px solid var(--warm-border);" />
+              <span style="font-size:11px;color:var(--text-hint);">or paste a link</span>
+              <hr style="flex:1;border:none;border-top:1px solid var(--warm-border);" />
+            </div>
+            <input id="vf-drive-link" type="text" placeholder="Paste Google Drive / image link…" style="margin-top:8px;width:100%;" oninput="handleDriveLink()" />
+            <div id="vf-image-preview" style="display:none;margin-top:10px;">
+              <div id="vf-preview-grid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+              <button onclick="clearImage()" style="display:block;margin-top:6px;font-size:11px;color:#A32D2D;background:none;border:none;cursor:pointer;">✕ Remove all images</button>
+            </div>
+            <div id="vf-drive-preview" style="display:none;font-size:12px;color:var(--client-accent);margin-top:6px;">
+              <i class="ti ti-link"></i> Drive link set
+              <button onclick="clearDrive()" style="font-size:11px;color:#A32D2D;background:none;border:none;cursor:pointer;margin-left:6px;">✕ Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-sm" onclick="goSection('vendor')">Cancel</button>
+          <button class="btn-sm-warm" id="vsave-btn" onclick="saveV()">Save vendor</button>
+        </div>
+        <p id="verr" style="color:#A32D2D;font-size:12px;margin-top:8px;display:none;"></p>
+      </div>
+
+      <!-- CLIENT BROWSE -->
+      <div class="section" id="sec-cbrowse">
+        <div class="stats-row" id="cstats"></div>
+        <div class="search-row">
+          <input type="text" id="csearch" placeholder="Search freelancers…" oninput="filterC()" />
+          <select id="cfsrc" onchange="filterC()"><option value="">All sources</option></select>
+        </div>
+        <div id="cgrid"><div class="loading"><div class="spinner"></div><br>Loading freelancers…</div></div>
+      </div>
+
+      <!-- CLIENT FORM -->
+      <div class="section" id="sec-cform">
+        <div class="form-title" id="cform-ttl">Add new freelancer</div>
+        <div class="form-grid">
+          <div class="fg"><label>Freelancer / company name</label><input id="cf-name" type="text" placeholder="e.g. Kapoor Enterprises" /></div>
+          <div class="fg"><label>Contact person</label><input id="cf-contact" type="text" placeholder="e.g. Neha Kapoor" /></div>
+          <div class="fg"><label>Phone</label><input id="cf-phone" type="tel" placeholder="+91 98765 43210" /></div>
+          <div class="fg"><label>Email</label><input id="cf-email" type="email" placeholder="neha@kapoor.com" /></div>
+          <div class="fg">
+            <label>How they got to know us</label>
+            <select id="cf-src" onchange="combo('cf-src','cf-src-o');updateSourceDetail('cf-src','cf-src-detail-wrap','cf-src-detail','cf-src-o-wrap','cf-src-o')">
+              <option value="">Select</option>
+              <option>Referral</option><option>Instagram</option><option>LinkedIn</option>
+              <option>Facebook</option><option>Google search</option><option>Word of mouth</option>
+              <option>Trade show / exhibition</option><option>Cold outreach</option><option>Website</option>
+              <option value="__o__">Other (type below)</option>
+            </select>
+            <div class="combo-other" id="cf-src-o-wrap"><input id="cf-src-o" type="text" placeholder="Type source…" oninput="updateSourceDetail('cf-src','cf-src-detail-wrap','cf-src-detail','cf-src-o-wrap','cf-src-o')" /></div>
+            <div id="cf-src-detail-wrap" style="display:none;margin-top:6px;">
+              <label style="font-size:12px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:4px;">Details</label>
+              <input id="cf-src-detail" type="text" placeholder="" style="width:100%;font-size:13px;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:var(--radius-md);padding:7px 10px;color:var(--text-primary);outline:none;font-family:inherit;" />
+            </div>
+          </div>
+          <div class="fg"><label>Status</label>
+            <select id="cf-status" onchange="updateStatusColor(this)" class="status-active"><option>Active</option><option>Prospect</option><option>Churned</option><option>Inactive</option></select>
+          </div>
+          <div class="fg full"><label>Notes</label><textarea id="cf-notes" placeholder="Additional notes…"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-sm" onclick="goSection('client')">Cancel</button>
+          <button class="btn-sm-green" id="csave-btn" onclick="saveC()">Save client</button>
+        </div>
+        <p id="cerr" style="color:#A32D2D;font-size:12px;margin-top:8px;display:none;"></p>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="section" id="sec-settings">
+        <div style="max-width:360px;display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">🔐 Admin password (view all)</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="fg"><label>New admin password</label><input type="password" id="npw" placeholder="New password" /></div>
+              <div class="fg"><label>Confirm</label><input type="password" id="cpw" placeholder="Confirm password" /></div>
+              <button class="btn-sm-warm" onclick="changePw()" style="align-self:flex-start;">Update admin password</button>
+              <p id="pwmsg" style="font-size:12px;display:none;"></p>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--warm-border);" />
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">➕ Add-only password (contributors)</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="fg"><label>New add-only password</label><input type="password" id="nadd-pw" placeholder="New add password" /></div>
+              <div class="fg"><label>Confirm</label><input type="password" id="cadd-pw" placeholder="Confirm password" /></div>
+              <button class="btn-sm-warm" onclick="changeAddPw()" style="align-self:flex-start;">Update add password</button>
+              <p id="addpwmsg" style="font-size:12px;display:none;"></p>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--warm-border);" />
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">🗑️ Delete password</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="fg"><label>New delete password</label><input type="password" id="ndel-pw" placeholder="New delete password" /></div>
+              <div class="fg"><label>Confirm</label><input type="password" id="cdel-pw" placeholder="Confirm password" /></div>
+              <button class="btn-sm-warm" onclick="changeDelPw()" style="align-self:flex-start;">Update delete password</button>
+              <p id="delpwmsg" style="font-size:12px;display:none;"></p>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--warm-border);" />
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;">
+            Share the app URL with your team.<br>
+            Give contributors the <strong>add-only password</strong>.<br>
+            Keep the <strong>admin password</strong> for managers only.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-ttl" id="modal-ttl"></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── SUPABASE CONFIG ──────────────────────────────────────────
+const SUPABASE_URL = 'https://uwqzuqzpsaztkvyrqjys.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_G9XSeVsVvulpf3AcLrnPZQ_4nsBKQNI';
+
+const headers = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Prefer': 'return=representation'
+};
+
+async function sbGet(table, params='') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.desc${params}`, {headers});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbInsert(table, data) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {method:'POST', headers, body:JSON.stringify(data)});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbUpdate(table, id, data) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {method:'PATCH', headers, body:JSON.stringify(data)});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {method:'DELETE', headers});
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ── GOOGLE SHEETS WEBHOOK ────────────────────────────────────
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzURi9pytpFR54cPTw09esCyG_-Hyt9EvH8HHkhzvW8fhQWQ2a6AjYfWYtKIr-7YD2zXA/exec';
+
+async function sendToSheets(data) {
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch(e) { console.log('Sheets sync error:', e); }
+}
+
+// ── STATE ────────────────────────────────────────────────────
+let pw = 'vendor2024';
+let vendors = [], clients = [];
+let vEdit = null, cEdit = null;
+
+// ── AUTH ─────────────────────────────────────────────────────
+let addPw = 'add2024';
+let deletePw = 'delete2024';
+
+function checkPw() {
+  const val = document.getElementById('pw-in').value;
+  if (val === pw) {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    goSection('vendor');
+// Initialize status colors
+document.querySelectorAll('#vf-status, #cf-status, #ao-vf-status, #ao-cf-status').forEach(s => updateStatusColor(s));
+  } else if (val === addPw) {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('add-only-screen').style.display = 'block';
+  } else {
+    document.getElementById('pw-err').style.display = 'block';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.id === 'pw-in') checkPw();
+});
+
+function aoTab(t) {
+  document.getElementById('ao-vendor-form').style.display = t==='v' ? 'block' : 'none';
+  document.getElementById('ao-client-form').style.display = t==='c' ? 'block' : 'none';
+  document.getElementById('ao-tab-v').style.background = t==='v' ? 'var(--warm-accent)' : 'var(--warm-surface)';
+  document.getElementById('ao-tab-v').style.color = t==='v' ? '#fff' : 'var(--text-secondary)';
+  document.getElementById('ao-tab-c').style.background = t==='c' ? 'var(--client-accent)' : 'var(--warm-surface)';
+  document.getElementById('ao-tab-c').style.color = t==='c' ? '#fff' : 'var(--text-secondary)';
+}
+
+async function aoSaveV() {
+  const btn = document.getElementById('ao-vsave-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    let imageUrl = document.getElementById('ao-vf-drive').value.trim() || null;
+    if (window._aoImageFiles && window._aoImageFiles.length > 0) {
+      btn.textContent = 'Uploading images…';
+      const urls = [];
+      for (const file of window._aoImageFiles) {
+        const url = await uploadImageToSupabase(file);
+        urls.push(url);
+      }
+      imageUrl = urls.join(',');
+    }
+    const data = {
+      name: document.getElementById('ao-vf-name').value.trim(),
+      contact: document.getElementById('ao-vf-contact').value.trim(),
+      phone: document.getElementById('ao-vf-phone').value.trim(),
+      email: document.getElementById('ao-vf-email').value.trim(),
+      category: getCombo('ao-vf-cat','ao-vf-cat-o'),
+      source: getCombo('ao-vf-src','ao-vf-src-o'),
+      city: document.getElementById('ao-vf-city').value.trim(),
+      state: document.getElementById('ao-vf-state').value.trim(),
+      country: document.getElementById('ao-vf-country').value.trim(),
+      status: document.getElementById('ao-vf-status').value,
+      tags: document.getElementById('ao-vf-tags').value.trim(),
+      notes: document.getElementById('ao-vf-notes').value.trim(),
+      source_detail: document.getElementById('ao-vf-src-detail').value.trim() || null,
+      image_url: imageUrl
+    };
+    await sbInsert('vendors', data);
+    sendToSheets({...data, type:'vendor'});
+    // Show session ended screen and redirect
+    showSessionEnded();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('ao-verr').textContent = 'Error submitting. Please try again.';
+    document.getElementById('ao-verr').style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Submit vendor';
+}
+
+async function aoSaveC() {
+  const btn = document.getElementById('ao-csave-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  const data = {
+    name: document.getElementById('ao-cf-name').value.trim(),
+    contact: document.getElementById('ao-cf-contact').value.trim(),
+    phone: document.getElementById('ao-cf-phone').value.trim(),
+    email: document.getElementById('ao-cf-email').value.trim(),
+    source: getCombo('ao-cf-src','ao-cf-src-o'),
+    status: document.getElementById('ao-cf-status').value,
+    notes: document.getElementById('ao-cf-notes').value.trim()
+  };
+  try {
+    await sbInsert('clients', data);
+    sendToSheets({...data, type:'client'});
+    showSessionEnded();
+  } catch(e) {
+    document.getElementById('ao-cerr').textContent = 'Error submitting. Please try again.';
+    document.getElementById('ao-cerr').style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Submit freelancer';
+}
+
+function showSessionEnded() {
+  document.getElementById('add-only-screen').style.display = 'none';
+  document.getElementById('session-ended-screen').style.display = 'flex';
+  setTimeout(() => {
+    document.getElementById('session-ended-screen').style.display = 'none';
+    document.getElementById('lock-screen').style.display = 'flex';
+  }, 3000);
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? '#A32D2D' : '#2C2416';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ── HELPERS ──────────────────────────────────────────────────
+function statusColor(s) {
+  if (s==='Active') return 'background:#D1FAE5;color:#065F46;';
+  if (s==='Prospect') return 'background:#FEF3C7;color:#92400E;';
+  if (s==='Inactive') return 'background:#FEE2E2;color:#991B1B;';
+  if (s==='Churned') return 'background:#FEE2E2;color:#991B1B;';
+  return 'background:#F1EFE8;color:#5F5E5A;';
+}
+function initials(n) { if (!n) return '?'; return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function getCombo(sid, oid) { const s=document.getElementById(sid); return s.value==='__o__' ? document.getElementById(oid).value.trim() : s.value; }
+function setCombo(sid, oid, val) {
+  const s = document.getElementById(sid);
+  const opts = Array.from(s.options).map(o => o.value);
+  if (opts.includes(val)) { s.value=val; document.getElementById(oid+'-wrap').style.display='none'; }
+  else { s.value='__o__'; document.getElementById(oid+'-wrap').style.display='block'; document.getElementById(oid).value=val||''; }
+}
+function combo(sid, oid) {
+  const s = document.getElementById(sid);
+  document.getElementById(oid+'-wrap').style.display = s.value==='__o__' ? 'block' : 'none';
+  if (s.value !== '__o__') document.getElementById(oid).value = '';
+}
+
+// ── IMAGE HANDLING ───────────────────────────────────────────
+window._vfImageFiles = [];
+window._vfImageBase64 = null;
+
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3cXp1cXpwc2F6dGt2eXJxanlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTE2MzA0MywiZXhwIjoyMDk0NzM5MDQzfQ.0RdbE4hk02Ee0u7HGP9F3KfBTu-wkqPzcanKIhU4wWs';
+
+async function uploadImageToSupabase(file) {
+  const ext = file.name.split('.').pop();
+  const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/vendor-images/${filename}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('Upload error:', err);
+    throw new Error('Upload failed: ' + err);
+  }
+  return `${SUPABASE_URL}/storage/v1/object/public/vendor-images/${filename}`;
+}
+
+function previewImages(files, gridId, previewDivId) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style = 'width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--warm-border);';
+      grid.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById(previewDivId).style.display = 'block';
+}
+
+function handleImageUpload() {
+  const files = document.getElementById('vf-image-file').files;
+  if (!files.length) return;
+  window._vfImageFiles = Array.from(files);
+  window._vfImageBase64 = null;
+  previewImages(files, 'vf-preview-grid', 'vf-image-preview');
+  document.getElementById('vf-drive-link').value = '';
+  document.getElementById('vf-drive-preview').style.display = 'none';
+}
+function handleDriveLink() {
+  const val = document.getElementById('vf-drive-link').value.trim();
+  if (val) {
+    document.getElementById('vf-drive-preview').style.display = 'block';
+    document.getElementById('vf-image-preview').style.display = 'none';
+    window._vfImageBase64 = null;
+  } else {
+    document.getElementById('vf-drive-preview').style.display = 'none';
+  }
+}
+function clearImage() {
+  window._vfImageFiles = [];
+  window._vfImageBase64 = null;
+  document.getElementById('vf-image-file').value = '';
+  document.getElementById('vf-preview-grid').innerHTML = '';
+  document.getElementById('vf-image-preview').style.display = 'none';
+}
+function clearDrive() {
+  document.getElementById('vf-drive-link').value = '';
+  document.getElementById('vf-drive-preview').style.display = 'none';
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('vf-dropzone').style.borderColor = 'var(--warm-border)';
+  document.getElementById('vf-dropzone').style.background = 'var(--warm-surface)';
+  const files = e.dataTransfer.files;
+  if (!files.length) return;
+  window._vfImageFiles = Array.from(files);
+  window._vfImageBase64 = null;
+  previewImages(files, 'vf-preview-grid', 'vf-image-preview');
+  document.getElementById('vf-drive-link').value = '';
+  document.getElementById('vf-drive-preview').style.display = 'none';
+}
+
+// Add-only image handlers
+window._aoImageBase64 = null;
+window._aoImageFiles = [];
+function handleAoImageUpload() {
+  const files = document.getElementById('ao-vf-image-file').files;
+  if (!files.length) return;
+  window._aoImageFiles = Array.from(files);
+  window._aoImageBase64 = null;
+  previewImages(files, 'ao-vf-preview-grid', 'ao-vf-image-preview');
+  document.getElementById('ao-vf-drive').value = '';
+}
+function handleAoDrop(e) {
+  e.preventDefault();
+  const files = e.dataTransfer.files;
+  if (!files.length) return;
+  window._aoImageFiles = Array.from(files);
+  window._aoImageBase64 = null;
+  previewImages(files, 'ao-vf-preview-grid', 'ao-vf-image-preview');
+  document.getElementById('ao-vf-drive').value = '';
+}
+function clearAoImage() {
+  window._aoImageFiles = [];
+  window._aoImageBase64 = null;
+  document.getElementById('ao-vf-image-file').value = '';
+  document.getElementById('ao-vf-preview-grid').innerHTML = '';
+  document.getElementById('ao-vf-image-preview').style.display = 'none';
+}
+
+
+const SOURCE_DETAIL_LABELS = {
+  'Referral': 'Who referred them?',
+  'Trade show / exhibition': 'Which exhibition?',
+  'Cold outreach': 'How did you reach out?',
+  'LinkedIn': 'LinkedIn profile / name?',
+  'IndiaMART / TradeIndia': 'Profile / listing link?',
+  'Website inquiry': 'Any details?',
+  'Existing relationship': 'How do you know them?',
+  'Instagram': 'Instagram handle?',
+  'Facebook': 'Facebook page / name?',
+  'Google search': 'Any details?',
+  'Word of mouth': 'Who mentioned them?',
+  'Cold outreach': 'How did you reach out?',
+  'Website': 'Any details?',
+};
+function updateSourceDetail(selectId, detailWrapId, detailInputId, otherWrapId, otherInputId) {
+  const sel = document.getElementById(selectId);
+  const val = sel.value === '__o__' ? document.getElementById(otherInputId).value.trim() : sel.value;
+  const wrap = document.getElementById(detailWrapId);
+  const inp = document.getElementById(detailInputId);
+  const label = SOURCE_DETAIL_LABELS[val];
+  if (label && val && val !== '__o__') {
+    wrap.style.display = 'block';
+    inp.placeholder = label;
+    inp.previousElementSibling.textContent = label;
+  } else {
+    wrap.style.display = 'none';
+    inp.value = '';
+  }
+}
+function updateStatusColor(sel) {
+  sel.className = sel.className.replace(/status-\w+/g, '').trim();
+  const v = sel.value;
+  if (v === 'Active') sel.classList.add('status-active');
+  else if (v === 'Prospect') sel.classList.add('status-prospect');
+  else if (v === 'Inactive') sel.classList.add('status-inactive');
+  else if (v === 'Churned') sel.classList.add('status-churned');
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────
+const secs = ['vbrowse','vform','cbrowse','cform','settings'];
+function showSec(id) { secs.forEach(s => document.getElementById('sec-'+s).classList.toggle('active', s===id)); }
+
+function goSection(s) {
+  ['v','c','s'].forEach(x => document.getElementById('nav-'+x).className = 'nav-item');
+  const hdrTitle = document.getElementById('hdr-title');
+  const hdrAct = document.getElementById('hdr-actions');
+  if (s === 'vendor') {
+    document.getElementById('nav-v').className = 'nav-item active-v';
+    hdrTitle.textContent = 'Vendors';
+    hdrAct.innerHTML = `<button class="btn-sm" onclick="exportCSV('vendor')"><i class="ti ti-download"></i> Export</button><button class="btn-sm-warm" onclick="openVForm()"><i class="ti ti-plus"></i> Add vendor</button>`;
+    showSec('vbrowse'); loadVendors();
+  } else if (s === 'client') {
+    document.getElementById('nav-c').className = 'nav-item active-c';
+    hdrTitle.textContent = 'Freelancers';
+    hdrAct.innerHTML = `<button class="btn-sm" onclick="exportCSV('client')"><i class="ti ti-download"></i> Export</button><button class="btn-sm-green" onclick="openCForm()"><i class="ti ti-plus"></i> Add freelancer</button>`;
+    showSec('cbrowse'); loadClients();
+  } else {
+    document.getElementById('nav-s').className = 'nav-item active-s';
+    hdrTitle.textContent = 'Settings';
+    hdrAct.innerHTML = '';
+    showSec('settings');
+  }
+}
+
+// ── VENDORS ──────────────────────────────────────────────────
+async function loadVendors() {
+  document.getElementById('vgrid').innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading vendors…</div>';
+  try {
+    vendors = await sbGet('vendors');
+    renderV();
+  } catch(e) { document.getElementById('vgrid').innerHTML = '<div class="empty">Could not load vendors. Check your connection.</div>'; toast('Error loading vendors', true); }
+}
+
+function filterV() { renderV(); }
+
+function renderV() {
+  const q = document.getElementById('vsearch').value.toLowerCase();
+  const cat = document.getElementById('vfcat').value;
+  const f = vendors.filter(v =>
+    (!q || [v.name,v.contact,v.email,v.phone,v.city,v.tags,v.category].some(x => x && x.toLowerCase().includes(q))) &&
+    (!cat || v.category === cat)
+  );
+  const grid = document.getElementById('vgrid');
+  if (!f.length) { grid.innerHTML = '<div class="empty">No vendors found.</div>'; }
+  else {
+    grid.innerHTML = f.map(v => `<div class="entry-card" onclick="openDetail('v','${v.id}')">
+      <div class="card-top"><div class="av-v">${initials(v.name)}</div><div><div class="card-name">${v.name||'—'}</div><span class="status-badge" style="${statusColor(v.status)}">${v.status||''}</span></div></div>
+      ${v.category ? `<div class="tag-v">${v.category}</div>` : ''}
+      ${v.contact ? `<div class="card-line"><i class="ti ti-user"></i>${v.contact}</div>` : ''}
+      ${v.phone ? `<div class="card-line"><i class="ti ti-phone"></i>${v.phone}</div>` : ''}
+      ${v.city ? `<div class="card-line"><i class="ti ti-map-pin"></i>${v.city}</div>` : ''}
+      ${v.tags ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${v.tags.split(',').map(t=>`<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:var(--warm-border);color:var(--text-secondary);">${t.trim()}</span>`).join('')}</div>` : ''}
+      ${v.image_url && !v.image_url.startsWith('http') ? `<img src="${v.image_url}" style="margin-top:6px;width:100%;max-height:80px;object-fit:cover;border-radius:6px;" />` : ''}
+      ${v.image_url && v.image_url.startsWith('http') ? `<div style="margin-top:4px;"><a href="${v.image_url}" target="_blank" style="font-size:11px;color:var(--warm-accent);"><i class="ti ti-link"></i> View file</a></div>` : ''}
+    </div>`).join('');
+  }
+  const cats = [...new Set(vendors.map(v=>v.category).filter(Boolean))].sort();
+  const cs = document.getElementById('vfcat'); const cv = cs.value;
+  cs.innerHTML = '<option value="">All categories</option>' + cats.map(c=>`<option${c===cv?' selected':''}>${c}</option>`).join('');
+  document.getElementById('vstats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total vendors</div><div class="stat-val">${vendors.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Active</div><div class="stat-val">${vendors.filter(v=>v.status==='Active').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-val">${cats.length}</div></div>`;
+}
+
+function openVForm(editId) {
+  vEdit = editId || null;
+  document.getElementById('vform-ttl').textContent = editId ? 'Edit vendor' : 'Add new vendor';
+  if (!editId) {
+    ['vf-name','vf-contact','vf-phone','vf-email','vf-city','vf-state','vf-country','vf-notes','vf-cat-o','vf-src-o','vf-tags','vf-drive-link'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('vf-cat').value = ''; document.getElementById('vf-src').value = ''; document.getElementById('vf-status').value = 'Active';
+    document.getElementById('vf-cat-o-wrap').style.display = 'none'; document.getElementById('vf-src-o-wrap').style.display = 'none';
+    document.getElementById('vf-image-preview').style.display = 'none'; document.getElementById('vf-drive-preview').style.display = 'none';
+    document.getElementById('vf-preview-img').src = ''; window._vfImageBase64 = null;
+  }
+  document.getElementById('nav-v').className = 'nav-item active-v';
+  document.getElementById('hdr-title').textContent = editId ? 'Edit vendor' : 'Add vendor';
+  document.getElementById('hdr-actions').innerHTML = '';
+  document.getElementById('verr').style.display = 'none';
+  showSec('vform');
+}
+
+async function saveV() {
+  const btn = document.getElementById('vsave-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    let imageUrl = document.getElementById('vf-drive-link').value.trim() || null;
+    if (window._vfImageFiles && window._vfImageFiles.length > 0) {
+      btn.textContent = 'Uploading images…';
+      const urls = [];
+      for (const file of window._vfImageFiles) {
+        const url = await uploadImageToSupabase(file);
+        urls.push(url);
+      }
+      imageUrl = urls.join(',');
+    }
+    const data = {
+      name: document.getElementById('vf-name').value.trim(),
+      contact: document.getElementById('vf-contact').value.trim(),
+      phone: document.getElementById('vf-phone').value.trim(),
+      email: document.getElementById('vf-email').value.trim(),
+      category: getCombo('vf-cat','vf-cat-o'),
+      source: getCombo('vf-src','vf-src-o'),
+      city: document.getElementById('vf-city').value.trim(),
+      state: document.getElementById('vf-state').value.trim(),
+      country: document.getElementById('vf-country').value.trim(),
+      status: document.getElementById('vf-status').value,
+      notes: document.getElementById('vf-notes').value.trim(),
+      tags: document.getElementById('vf-tags').value.trim(),
+      source_detail: document.getElementById('vf-src-detail').value.trim() || null,
+      image_url: imageUrl
+    };
+    if (vEdit) await sbUpdate('vendors', vEdit, data);
+    else { await sbInsert('vendors', data); sendToSheets({...data, type:'vendor'}); }
+    toast(vEdit ? 'Vendor updated!' : 'Vendor added!');
+    window._vfImageFiles = [];
+    vEdit = null; goSection('vendor');
+// Initialize status colors
+document.querySelectorAll('#vf-status, #cf-status, #ao-vf-status, #ao-cf-status').forEach(s => updateStatusColor(s));
+  } catch(e) {
+    console.error(e);
+    document.getElementById('verr').textContent = 'Error saving. Please try again.';
+    document.getElementById('verr').style.display = 'block';
+    toast('Error saving vendor', true);
+  }
+  btn.disabled = false; btn.textContent = 'Save vendor';
+}
+
+// ── CLIENTS ──────────────────────────────────────────────────
+async function loadClients() {
+  document.getElementById('cgrid').innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading freelancers…</div>';
+  try {
+    clients = await sbGet('clients');
+    renderC();
+  } catch(e) { document.getElementById('cgrid').innerHTML = '<div class="empty">Could not load freelancers.</div>'; toast('Error loading freelancers', true); }
+}
+
+function filterC() { renderC(); }
+
+function renderC() {
+  const q = document.getElementById('csearch').value.toLowerCase();
+  const src = document.getElementById('cfsrc').value;
+  const f = clients.filter(c =>
+    (!q || [c.name,c.contact,c.email,c.phone].some(x => x && x.toLowerCase().includes(q))) &&
+    (!src || c.source === src)
+  );
+  const grid = document.getElementById('cgrid');
+  if (!f.length) { grid.innerHTML = '<div class="empty">No freelancers found.</div>'; }
+  else {
+    grid.innerHTML = f.map(c => `<div class="entry-card client-card" onclick="openDetail('c','${c.id}')">
+      <div class="card-top"><div class="av-c">${initials(c.name)}</div><div><div class="card-name">${c.name||'—'}</div><span class="status-badge" style="${statusColor(c.status)}">${c.status||''}</span></div></div>
+      ${c.source ? `<div class="tag-c">${c.source}</div>` : ''}
+      ${c.contact ? `<div class="card-line"><i class="ti ti-user"></i>${c.contact}</div>` : ''}
+      ${c.phone ? `<div class="card-line"><i class="ti ti-phone"></i>${c.phone}</div>` : ''}
+    </div>`).join('');
+  }
+  const srcs = [...new Set(clients.map(c=>c.source).filter(Boolean))].sort();
+  const ss = document.getElementById('cfsrc'); const sv = ss.value;
+  ss.innerHTML = '<option value="">All sources</option>' + srcs.map(s=>`<option${s===sv?' selected':''}>${s}</option>`).join('');
+  document.getElementById('cstats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total freelancers</div><div class="stat-val">${clients.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Active</div><div class="stat-val">${clients.filter(c=>c.status==='Active').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Prospects</div><div class="stat-val">${clients.filter(c=>c.status==='Prospect').length}</div></div>`;
+}
+
+function openCForm(editId) {
+  cEdit = editId || null;
+  document.getElementById('cform-ttl').textContent = editId ? 'Edit freelancer' : 'Add new freelancer';
+  if (!editId) {
+    ['cf-name','cf-contact','cf-phone','cf-email','cf-notes','cf-src-o'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('cf-src').value = ''; document.getElementById('cf-status').value = 'Active';
+    document.getElementById('cf-src-o-wrap').style.display = 'none';
+  }
+  document.getElementById('nav-c').className = 'nav-item active-c';
+  document.getElementById('hdr-title').textContent = editId ? 'Edit freelancer' : 'Add freelancer';
+  document.getElementById('hdr-actions').innerHTML = '';
+  document.getElementById('cerr').style.display = 'none';
+  showSec('cform');
+}
+
+async function saveC() {
+  const btn = document.getElementById('csave-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const data = {
+    name: document.getElementById('cf-name').value.trim(),
+    contact: document.getElementById('cf-contact').value.trim(),
+    phone: document.getElementById('cf-phone').value.trim(),
+    email: document.getElementById('cf-email').value.trim(),
+    source: getCombo('cf-src','cf-src-o'),
+    status: document.getElementById('cf-status').value,
+    notes: document.getElementById('cf-notes').value.trim()
+  };
+  try {
+    if (cEdit) await sbUpdate('clients', cEdit, data);
+    else { await sbInsert('clients', data); sendToSheets({...data, type:'client'}); }
+    toast(cEdit ? 'Freelancer updated!' : 'Freelancer added!');
+    cEdit = null; goSection('client');
+  } catch(e) {
+    document.getElementById('cerr').textContent = 'Error saving. Please try again.';
+    document.getElementById('cerr').style.display = 'block';
+    toast('Error saving client', true);
+  }
+  btn.disabled = false; btn.textContent = 'Save client';
+}
+
+// ── DETAIL MODAL ─────────────────────────────────────────────
+function openDetail(type, id) {
+  const entry = (type==='v' ? vendors : clients).find(x => x.id === id);
+  if (!entry) return;
+  document.getElementById('modal-ttl').textContent = entry.name || 'Details';
+  const rows = type === 'v'
+    ? [['Contact',entry.contact||'—'],['Phone',entry.phone||'—'],['Email',entry.email||'—'],['Vendor',entry.category||'—'],['Connected via',entry.source||'—'],['City',entry.city||'—'],['State',entry.state||'—'],['Country',entry.country||'—'],['Status',entry.status||'—'],['Notes',entry.notes||'—'],['Tags',entry.tags||'—'],['Connection details',entry.source_detail||'—']]
+    : [['Contact',entry.contact||'—'],['Phone',entry.phone||'—'],['Email',entry.email||'—'],['Found us via',entry.source||'—'],['Status',entry.status||'—'],['Connection details',entry.source_detail||'—'],['Notes',entry.notes||'—']];
+  const btnCls = type==='v' ? 'btn-sm-warm' : 'btn-sm-green';
+  const imgHtml = entry.image_url ? (() => {
+    const urls = entry.image_url.split(',').map(u => u.trim()).filter(Boolean);
+    return urls.map(u => u.startsWith('data:') || u.startsWith('http')
+      ? `<div style="padding:4px 0;"><img src="${u}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--warm-border);object-fit:cover;" /></div>`
+      : '').join('');
+  })() : '';
+  document.getElementById('modal-body').innerHTML =
+    rows.map(([l,v]) => `<div class="drow"><span class="dlabel">${l}</span><span class="dval">${v}</span></div>`).join('') + imgHtml +
+    `<div class="modal-actions">
+      <button class="${btnCls}" onclick="startEdit('${type}','${id}')"><i class="ti ti-edit"></i> Edit</button>
+      <button style="color:#A32D2D;font-size:13px;background:none;border:none;cursor:pointer;" onclick="delEntry('${type}','${id}')"><i class="ti ti-trash"></i> Delete</button>
+    </div>`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function startEdit(type, id) {
+  closeModal();
+  if (type === 'v') {
+    const v = vendors.find(x => x.id === id);
+    openVForm(id);
+    document.getElementById('vf-name').value = v.name||'';
+    document.getElementById('vf-contact').value = v.contact||'';
+    document.getElementById('vf-phone').value = v.phone||'';
+    document.getElementById('vf-email').value = v.email||'';
+    setCombo('vf-cat','vf-cat-o', v.category||'');
+    setCombo('vf-src','vf-src-o', v.source||'');
+    document.getElementById('vf-city').value = v.city||'';
+    document.getElementById('vf-state').value = v.state||'';
+    document.getElementById('vf-country').value = v.country||'';
+    document.getElementById('vf-status').value = v.status||'Active';
+    document.getElementById('vf-notes').value = v.notes||'';
+    document.getElementById('vf-tags').value = v.tags||'';
+    if (v.image_url && v.image_url.startsWith('data:')) { window._vfImageBase64 = v.image_url; document.getElementById('vf-preview-img').src = v.image_url; document.getElementById('vf-image-preview').style.display = 'block'; }
+    else if (v.image_url) { document.getElementById('vf-drive-link').value = v.image_url; document.getElementById('vf-drive-preview').style.display = 'block'; }
+  } else {
+    const c = clients.find(x => x.id === id);
+    openCForm(id);
+    document.getElementById('cf-name').value = c.name||'';
+    document.getElementById('cf-contact').value = c.contact||'';
+    document.getElementById('cf-phone').value = c.phone||'';
+    document.getElementById('cf-email').value = c.email||'';
+    setCombo('cf-src','cf-src-o', c.source||'');
+    document.getElementById('cf-status').value = c.status||'Active';
+    document.getElementById('cf-notes').value = c.notes||'';
+  }
+}
+
+async function delEntry(type, id) {
+  const enteredPw = prompt('Enter admin password to delete this entry:');
+  if (enteredPw === null) return;
+  if (enteredPw !== pw) { alert('Incorrect password. Deletion cancelled.'); return; }
+  if (!confirm('Delete this entry? This cannot be undone.')) return;
+  try {
+    await sbDelete(type==='v' ? 'vendors' : 'clients', id);
+    toast('Deleted successfully');
+    closeModal();
+    if (type==='v') { vendors = vendors.filter(x=>x.id!==id); renderV(); }
+    else { clients = clients.filter(x=>x.id!==id); renderC(); }
+  } catch(e) { toast('Error deleting', true); }
+}
+
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+document.getElementById('modal').addEventListener('click', e => { if (e.target===document.getElementById('modal')) closeModal(); });
+
+// ── SETTINGS ─────────────────────────────────────────────────
+function changePw() {
+  const n=document.getElementById('npw').value, c=document.getElementById('cpw').value, m=document.getElementById('pwmsg');
+  if (!n) { m.style.color='#A32D2D'; m.textContent='Please enter a new password.'; m.style.display='block'; return; }
+  if (n!==c) { m.style.color='#A32D2D'; m.textContent='Passwords do not match.'; m.style.display='block'; return; }
+  pw=n; m.style.color='#2D4228'; m.textContent='Admin password updated!'; m.style.display='block';
+  document.getElementById('npw').value=''; document.getElementById('cpw').value='';
+}
+function changeAddPw() {
+  const n=document.getElementById('nadd-pw').value, c=document.getElementById('cadd-pw').value, m=document.getElementById('addpwmsg');
+  if (!n) { m.style.color='#A32D2D'; m.textContent='Please enter a new password.'; m.style.display='block'; return; }
+  if (n!==c) { m.style.color='#A32D2D'; m.textContent='Passwords do not match.'; m.style.display='block'; return; }
+  addPw=n; m.style.color='#2D4228'; m.textContent='Add-only password updated!'; m.style.display='block';
+  document.getElementById('nadd-pw').value=''; document.getElementById('cadd-pw').value='';
+}
+function changeDelPw() {
+  const n=document.getElementById('ndel-pw').value, c=document.getElementById('cdel-pw').value, m=document.getElementById('delpwmsg');
+  if (!n) { m.style.color='#A32D2D'; m.textContent='Please enter a new password.'; m.style.display='block'; return; }
+  if (n!==c) { m.style.color='#A32D2D'; m.textContent='Passwords do not match.'; m.style.display='block'; return; }
+  deletePw=n; m.style.color='#2D4228'; m.textContent='Delete password updated!'; m.style.display='block';
+  document.getElementById('ndel-pw').value=''; document.getElementById('cdel-pw').value='';
+}
+
+// ── EXPORT ───────────────────────────────────────────────────
+function exportCSV(type) {
+  let h, rows;
+  if (type==='vendor') { h=['Name','Contact','Phone','Email','Category','Source','City','Status','Notes']; rows=vendors.map(v=>[v.name,v.contact,v.phone,v.email,v.category,v.source,v.city,v.status,v.notes]); }
+  else { h=['Name','Contact','Phone','Email','How They Found Us','Status','Notes']; rows=clients.map(c=>[c.name,c.contact,c.phone,c.email,c.source,c.status,c.notes]); }
+  const csv=[h,...rows].map(r=>r.map(x=>'"'+(x||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download=type+'_database.csv'; a.click();
+}
+</script>
+</body>
+</html>
